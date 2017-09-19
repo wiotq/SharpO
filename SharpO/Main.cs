@@ -26,15 +26,12 @@ namespace SharpO
             SDK.Init();
 
             SDK.Engine.ClientCmd_Unrestricted("clear", 0);
-            SDK.Engine.ClientCmd_Unrestricted("echo ...", 0);
             SDK.Engine.ClientCmd_Unrestricted("echo [C#]", 0);
-            SDK.Engine.ClientCmd_Unrestricted("echo ...", 0);
 
             while(true)
             {
                 Console.ReadKey();
-
-
+                
             }
         }
     }

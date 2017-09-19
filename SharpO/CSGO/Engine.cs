@@ -8,10 +8,8 @@ using SharpO.CSGO.Valve;
 
 namespace SharpO.CSGO
 {
-    public class EngineClient
+    public class Engine: InterfaceBase
     {
-        IntPtr BaseAdr = IntPtr.Zero;
-
         public delegate int GetLocalPlayerDlg();
         public delegate void ClientCmd_UnrestrictedDlg(string text, int flags);
         public delegate void GetViewAnglesDlg(out Vector vector);
@@ -22,14 +20,12 @@ namespace SharpO.CSGO
         public GetViewAnglesDlg GetViewAngles;
         public SetViewAngleDlg SetViewAngles;
 
-        public EngineClient(IntPtr baseAdr)
+        public Engine(IntPtr baseAdr) : base(baseAdr)
         {
-            this.BaseAdr = baseAdr;
-
-            GetLocalPlayer = Memory.GetFunction<GetLocalPlayerDlg>(Memory.ReadPointer(Memory.ReadPointer(BaseAdr) + 12 * 4));
-            ClientCmd_Unrestricted = Memory.GetFunction<ClientCmd_UnrestrictedDlg>(Memory.ReadPointer(Memory.ReadPointer(BaseAdr) + 114 * 4));
-            GetViewAngles = Memory.GetFunction<GetViewAnglesDlg>(Memory.ReadPointer(Memory.ReadPointer(BaseAdr) + 18 * 4));
-            SetViewAngles = Memory.GetFunction<SetViewAngleDlg>(Memory.ReadPointer(Memory.ReadPointer(BaseAdr) + 19 * 4));
+            GetLocalPlayer = GetInterfaceFunction<GetLocalPlayerDlg>(12);
+            ClientCmd_Unrestricted = GetInterfaceFunction<ClientCmd_UnrestrictedDlg>(114);
+            GetViewAngles = GetInterfaceFunction<GetViewAnglesDlg>(18);
+            SetViewAngles = GetInterfaceFunction<SetViewAngleDlg>(19);
         }
     }
 }

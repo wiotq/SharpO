@@ -5,11 +5,14 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SharpO.CSGO {
-    public class CClient {
+namespace SharpO.CSGO
+{
+    public class Client
+    {
         IntPtr BaseAdr = IntPtr.Zero;
 
-        public CClient(IntPtr baseAdr) {
+        public Client(IntPtr baseAdr)
+        {
             this.BaseAdr = baseAdr;
         }
     }

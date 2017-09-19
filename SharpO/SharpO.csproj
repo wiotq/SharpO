@@ -32,9 +32,12 @@
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
+    <DefineConstants>
+    </DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <PlatformTarget>x86</PlatformTarget>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="DllExport, Version=1.5.2.30304, Culture=neutral, PublicKeyToken=8337224c9ad9e356, processorArchitecture=MSIL">
@@ -54,8 +57,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CSGO\CClient.cs" />
-    <Compile Include="CSGO\EngineClient.cs" />
+    <Compile Include="CSGO\Client.cs" />
+    <Compile Include="CSGO\Engine.cs" />
+    <Compile Include="CSGO\InterfaceBase.cs" />
+    <Compile Include="CSGO\Panel.cs" />
     <Compile Include="CSGO\SDK.cs" />
     <Compile Include="CSGO\Valve\Vector.cs" />
     <Compile Include="DebugHelper.cs" />

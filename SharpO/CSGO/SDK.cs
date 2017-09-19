@@ -13,8 +13,8 @@ namespace SharpO.CSGO
 
     public static class SDK
     {
-        public static CClient Client;
-        public static EngineClient Engine;
+        public static Client Client;
+        public static Engine Engine;
 
         private static CreateInterface ClientInterface;
         private static CreateInterface EngineInterface;
@@ -24,20 +24,39 @@ namespace SharpO.CSGO
         private static CreateInterface PhysicsInterface;
         private static CreateInterface StdInterface;
 
+        /// <summary>
+        /// Find all interface pointers
+        /// </summary>
         public static void Init()
         {
-            ClientInterface = Memory.GetFunction<CreateInterface>(GetProcAddress(GetModuleHandle("client.dll"), "CreateInterface"));
-            EngineInterface = Memory.GetFunction<CreateInterface>(GetProcAddress(GetModuleHandle("engine.dll"), "CreateInterface"));
-            VGUI2Interface = Memory.GetFunction<CreateInterface>(GetProcAddress(GetModuleHandle("vgui2.dll"), "CreateInterface"));
-            VGUISurfaceInterface = Memory.GetFunction<CreateInterface>(GetProcAddress(GetModuleHandle("vguimatsurface.dll"), "CreateInterface"));
-            MaterialInterface = Memory.GetFunction<CreateInterface>(GetProcAddress(GetModuleHandle("materialsystem.dll"), "CreateInterface"));
-            PhysicsInterface = Memory.GetFunction<CreateInterface>(GetProcAddress(GetModuleHandle("vphysics.dll"), "CreateInterface"));
-            StdInterface = Memory.GetFunction<CreateInterface>(GetProcAddress(GetModuleHandle("vstdlib.dll"), "CreateInterface"));
+            ClientInterface = GetCreateInterfaceFunction("client.dll");
+            EngineInterface = GetCreateInterfaceFunction("engine.dll");
+            VGUI2Interface = GetCreateInterfaceFunction("vgui2.dll");
+            VGUISurfaceInterface = GetCreateInterfaceFunction("vguimatsurface.dll");
+            MaterialInterface = GetCreateInterfaceFunction("materialsystem.dll");
+            PhysicsInterface = GetCreateInterfaceFunction("vphysics.dll");
+            StdInterface = GetCreateInterfaceFunction("vstdlib.dll");
 
-            Client = new CClient(GetInterfacePtr("VClient", ClientInterface));
-            Engine = new EngineClient(GetInterfacePtr("VEngineClient", EngineInterface));
+            Client = new Client(GetInterfacePtr("VClient", ClientInterface));
+            Engine = new Engine(GetInterfacePtr("VEngineClient", EngineInterface));
         }
 
+        /// <summary>
+        /// Get CreateInterface() function from specified module (dll)
+        /// </summary>
+        /// <param name="moduleName">Module (dll) name</param>
+        /// <returns>Function</returns>
+        private static CreateInterface GetCreateInterfaceFunction(string moduleName)
+        {
+            return Memory.GetFunction<CreateInterface>(GetProcAddress(GetModuleHandle(moduleName), "CreateInterface"));
+        }
+
+        /// <summary>
+        /// Find interface pointer
+        /// </summary>
+        /// <param name="interfaceName"></param>
+        /// <param name="cInterface"></param>
+        /// <returns></returns>
         private static IntPtr GetInterfacePtr(string interfaceName, CreateInterface cInterface)
         {
             string tempInterface = "";

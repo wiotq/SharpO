@@ -26,7 +26,7 @@ namespace Injector
                 Thread.Sleep(1000);
             }
 
-            var sharpo = @"T:\C#\!Projects\SharpO\SharpO\bin\Debug\SharpO.dll";
+            var sharpo = @"T:\C#\!Projects\SharpO\SharpO\bin\Release\SharpO.dll";
 
             var injectedLibPtr = proc.LoadLibrary(sharpo);
             var lib = LoadLibrary(sharpo);

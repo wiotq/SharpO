@@ -81,7 +81,7 @@ namespace SharpO
         }
 
         /// <summary>
-        /// 
+        /// Hooked function will jump to our function
         /// </summary>
         public void SetJump()
         {
