@@ -19,5 +19,10 @@ namespace SharpO.CSGO
         {
             return Memory.GetFunction<T>(Memory.ReadPointer(Memory.ReadPointer(BaseAdr) + index * 4));
         }
+
+        internal IntPtr GetInterfaceFunctionAddress<T>(int index)
+        {
+            return Memory.ReadPointer(Memory.ReadPointer(BaseAdr) + index * 4);
+        }
     }
 }

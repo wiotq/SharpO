@@ -15,6 +15,7 @@ namespace SharpO.CSGO
     {
         public static Client Client;
         public static Engine Engine;
+        public static Panel Panel;
 
         private static CreateInterface ClientInterface;
         private static CreateInterface EngineInterface;
@@ -39,6 +40,7 @@ namespace SharpO.CSGO
 
             Client = new Client(GetInterfacePtr("VClient", ClientInterface));
             Engine = new Engine(GetInterfacePtr("VEngineClient", EngineInterface));
+            Panel = new Panel(GetInterfacePtr("VGUI_Panel", VGUI2Interface));
         }
 
         /// <summary>

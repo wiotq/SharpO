@@ -7,39 +7,34 @@ using System.Threading.Tasks;
 
 namespace SharpO
 {
-    public class Hook
+    public unsafe class Hook
     {
-        [DllImport("kernel32.dll", SetLastError = true)]
-        static extern bool VirtualProtect(IntPtr lpAddress, int dwSize, int flNewProtect, out int lpflOldProtect);
+        public IntPtr HookAddress { get; private set; }
+        public IntPtr CallbackAddress { get; private set; }
 
-        public enum Protection
-        {
-            PAGE_NOACCESS = 0x01,
-            PAGE_READONLY = 0x02,
-            PAGE_READWRITE = 0x04,
-            PAGE_WRITECOPY = 0x08,
-            PAGE_EXECUTE = 0x10,
-            PAGE_EXECUTE_READ = 0x20,
-            PAGE_EXECUTE_READWRITE = 0x40,
-            PAGE_EXECUTE_WRITECOPY = 0x80,
-            PAGE_GUARD = 0x100,
-            PAGE_NOCACHE = 0x200,
-            PAGE_WRITECOMBINE = 0x400
-        }
-
-        private IntPtr HookAddress;
         private Delegate Callback;
         private byte[] OldBytes;
+        private bool RestoreRegisters;
+
+        private int[] SavedRegisters = new int[8]; // EAX, EBX, ECX, EDX, ESI, EDI, EBP, ESP
 
         /// <summary>
         /// Initialize hook parameters
         /// </summary>
         /// <param name="hookAddress">Address in memory to be hooked</param>
         /// <param name="callback">Hook callback function</param>
-        public Hook(IntPtr hookAddress, Delegate callback)
+        public Hook(IntPtr hookAddress, Delegate callback, bool restoreRegisters = false)
         {
-            HookAddress = hookAddress;
-            Callback = callback;
+            this.HookAddress = hookAddress;
+            this.Callback = callback;
+            this.RestoreRegisters = restoreRegisters;
+            this.CallbackAddress = Marshal.GetFunctionPointerForDelegate(callback);
+
+            // Make sure that SavedRegisters pointers will not be moved in address space by garbage collector
+            for(int i = 0; i < SavedRegisters.Length; i++)
+            {
+                GC.SuppressFinalize(SavedRegisters[i]);
+            }
         }
 
         /// <summary>
@@ -61,9 +56,9 @@ namespace SharpO
             }
 
             int oldProtect = 0;
-            VirtualProtect(HookAddress, asm_bytes.Count, (int)Protection.PAGE_EXECUTE_READWRITE, out oldProtect);
+            WinAPI.VirtualProtect(HookAddress, asm_bytes.Count, (int)WinAPI.Protection.PAGE_EXECUTE_READWRITE, out oldProtect);
             Marshal.Copy(asm_bytes.ToArray(), 0, HookAddress, asm_bytes.Count);
-            VirtualProtect(HookAddress, asm_bytes.Count, oldProtect, out oldProtect);
+            WinAPI.VirtualProtect(HookAddress, asm_bytes.Count, oldProtect, out oldProtect);
         }
 
 
@@ -75,9 +70,9 @@ namespace SharpO
             var callbackAddress = Marshal.GetFunctionPointerForDelegate(Callback);
 
             int oldProtect = 0;
-            VirtualProtect(HookAddress, IntPtr.Size, (int)Protection.PAGE_EXECUTE_READWRITE, out oldProtect);
+            WinAPI.VirtualProtect(HookAddress, IntPtr.Size, (int)WinAPI.Protection.PAGE_EXECUTE_READWRITE, out oldProtect);
             Marshal.WriteIntPtr(HookAddress, callbackAddress);
-            VirtualProtect(HookAddress, IntPtr.Size, oldProtect, out oldProtect);
+            WinAPI.VirtualProtect(HookAddress, IntPtr.Size, oldProtect, out oldProtect);
         }
 
         /// <summary>
@@ -95,20 +90,20 @@ namespace SharpO
             Marshal.Copy(HookAddress, OldBytes, 0, asm_bytes.Count);
 
             int oldProtect = 0;
-            VirtualProtect(HookAddress, asm_bytes.Count, (int)Protection.PAGE_EXECUTE_READWRITE, out oldProtect);
+            WinAPI.VirtualProtect(HookAddress, asm_bytes.Count, (int)WinAPI.Protection.PAGE_EXECUTE_READWRITE, out oldProtect);
             Marshal.Copy(asm_bytes.ToArray(), 0, HookAddress, asm_bytes.Count);
-            VirtualProtect(HookAddress, asm_bytes.Count, oldProtect, out oldProtect);
+            WinAPI.VirtualProtect(HookAddress, asm_bytes.Count, oldProtect, out oldProtect);
         }
 
         /// <summary>
-        /// 
+        /// Remove jump hook
         /// </summary>
         public void UnsetJump()
         {
             int oldProtect = 0;
-            VirtualProtect(HookAddress, OldBytes.Length, (int)Protection.PAGE_EXECUTE_READWRITE, out oldProtect);
+            WinAPI.VirtualProtect(HookAddress, OldBytes.Length, (int)WinAPI.Protection.PAGE_EXECUTE_READWRITE, out oldProtect);
             Marshal.Copy(OldBytes, 0, HookAddress, OldBytes.Length);
-            VirtualProtect(HookAddress, OldBytes.Length, oldProtect, out oldProtect);
+            WinAPI.VirtualProtect(HookAddress, OldBytes.Length, oldProtect, out oldProtect);
         }
     }
 }
