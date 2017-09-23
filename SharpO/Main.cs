@@ -4,7 +4,10 @@ using System.Threading;
 
 using SharpO.CSGO;
 using SharpO.CSGO.Valve;
+using SharpO.Hooks;
+
 using System.Collections.Generic;
+using System.Reflection;
 
 namespace SharpO
 {
@@ -22,6 +25,16 @@ namespace SharpO
         [DllExport("Init")]
         public static void Init()
         {
+            AppDomain.CurrentDomain.AssemblyResolve += (object sender, ResolveEventArgs args) =>
+            {
+                if(args.Name.Contains("Fasm.NET"))
+                {
+                    return Assembly.LoadFrom(@"T:\C#\!Projects\SharpO\SharpO\bin\Release\Fasm.NET.dll");
+                }
+
+                return null;
+            };
+
             DebugHelper.ShowConsoleWindow();
 
             SDK.Init();
@@ -34,51 +47,27 @@ namespace SharpO
             while(true)
             {
                 Console.ReadKey();
-
             }
         }
-
-
     }
 
     public static class EngineHook
     {
-        static Hook HookPT;
+        static PaintTraverseHook HookPT;
 
-        public delegate void PaintTraverseDlg(IntPtr panelAdr, int vguiPanel, int forceRepaint, int allowForce);
+        public delegate void PaintTraverseDlg();
         public delegate void Test();
         static Test test;
 
         public static void Init()
         {
-            HookPT = new Hook(SDK.Panel.GetInterfaceFunctionAddress<PaintTraverseDlg>(41), (PaintTraverseDlg)PaintTraverseHooked);
-            Console.WriteLine(HookPT.HookAddress.ToString("X"));
-
-            List<byte> asmBytes = new List<byte>();
-            asmBytes.AddRange(new byte[] {
-                0xB8, 0x01, 0x00, 0x00, 0x00, // mov eax, 1
-                0xC3 // ret
-            });
-
-            IntPtr taskPtr = Marshal.AllocCoTaskMem(asmBytes.Count);
-            WinAPI.VirtualProtect(taskPtr, asmBytes.Count, (int)WinAPI.Protection.PAGE_EXECUTE_READWRITE, out int x);
-            Memory.WriteBytes(taskPtr, asmBytes.ToArray());
-            test = Memory.GetFunction<Test>(taskPtr);
-
-            Console.WriteLine(taskPtr.ToString("X"));
-
-            Console.ReadLine();
-
-            HookPT.SetCall();
+            HookPT = new PaintTraverseHook(SDK.Panel.GetInterfaceFunctionAddress<PaintTraverseDlg>(41), (PaintTraverseDlg)PaintTraverseHooked);
+            HookPT.Hook();
         }
 
-        static unsafe void PaintTraverseHooked(IntPtr panelAdr, int vguiPanel, int forceRepaint, int allowForce)
+        static unsafe void PaintTraverseHooked()
         {
-            test();
-
-            //HookPT.UnsetJump();
-            //SDK.Panel.PaintTraverse(panelAdr, vguiPanel, forceRepaint, allowForce);
-            //HookPT.SetJump();
+            Console.WriteLine($"{SDK.Panel.BaseAdr.ToString("X")}");
         }
     }
 }

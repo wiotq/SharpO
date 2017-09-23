@@ -7,34 +7,24 @@ using System.Threading.Tasks;
 
 namespace SharpO
 {
-    public unsafe class Hook
+    public unsafe abstract class Hook
     {
-        public IntPtr HookAddress { get; private set; }
-        public IntPtr CallbackAddress { get; private set; }
+        public IntPtr HookAddress { get; internal set; }
+        public IntPtr CallbackAddress { get; internal set; }
 
         private Delegate Callback;
         private byte[] OldBytes;
-        private bool RestoreRegisters;
-
-        private int[] SavedRegisters = new int[8]; // EAX, EBX, ECX, EDX, ESI, EDI, EBP, ESP
 
         /// <summary>
         /// Initialize hook parameters
         /// </summary>
         /// <param name="hookAddress">Address in memory to be hooked</param>
         /// <param name="callback">Hook callback function</param>
-        public Hook(IntPtr hookAddress, Delegate callback, bool restoreRegisters = false)
+        public Hook(IntPtr hookAddress, Delegate callback)
         {
             this.HookAddress = hookAddress;
             this.Callback = callback;
-            this.RestoreRegisters = restoreRegisters;
             this.CallbackAddress = Marshal.GetFunctionPointerForDelegate(callback);
-
-            // Make sure that SavedRegisters pointers will not be moved in address space by garbage collector
-            for(int i = 0; i < SavedRegisters.Length; i++)
-            {
-                GC.SuppressFinalize(SavedRegisters[i]);
-            }
         }
 
         /// <summary>
@@ -78,9 +68,17 @@ namespace SharpO
         /// <summary>
         /// Hooked function will jump to our function
         /// </summary>
-        public void SetJump()
+        public void SetJump(IntPtr callbackAdr)
         {
-            var callbackAddress = Marshal.GetFunctionPointerForDelegate(Callback);
+            IntPtr callbackAddress;
+            if(callbackAdr == IntPtr.Zero)
+            {
+                callbackAddress = Marshal.GetFunctionPointerForDelegate(Callback);
+            }
+            else
+            {
+                callbackAddress = callbackAdr;
+            }
 
             var asm_bytes = new List<byte>();
             asm_bytes.Add(0xE9);

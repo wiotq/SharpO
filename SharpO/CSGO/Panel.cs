@@ -9,7 +9,6 @@ namespace SharpO.CSGO
 {
     public class Panel: InterfaceBase
     {
-        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         public delegate void PaintTraverseDlg(IntPtr panelAdr, int vguiPanel, int forceRepaint, int allowForce);
         public delegate void GetPanelDlg(int type);
         public delegate void GetNameDlg(uint panel);
